@@ -27,7 +27,7 @@
         "squizlabs/php_codesniffer": "^3.6"
     },
     "suggest": {
-        "ext-intl": "Enables ICU MessageFormat and locale-aware regional formatting."
+        "ext-intl": "Enables ICU MessageFormat pluralization with full CLDR plural rules."
     },
     "homepage": "https://github.com/glueful/i18n",
     "autoload": {
@@ -54,7 +54,7 @@
             "name": "I18n",
             "displayName": "I18n",
             "description": "Localization primitives for Glueful apps and extensions.",
-            "version": "0.1.0",
+            "version": "1.0.0",
             "categories": [
                 "localization",
                 "content"
