@@ -102,6 +102,12 @@ final class TranslationRepository implements TranslationRepositoryInterface
             ->get();
     }
 
+    /** @return array<string,mixed>|null */
+    public function findByUuid(string $uuid): ?array
+    {
+        return $this->connection->table('i18n_translations')->where('uuid', '=', $uuid)->first();
+    }
+
     /** @return array<string,mixed> */
     public function updateByUuid(string $uuid, string $value): array
     {

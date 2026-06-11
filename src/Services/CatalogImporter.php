@@ -21,10 +21,10 @@ final class CatalogImporter
         $extension = strtolower(pathinfo($path, PATHINFO_EXTENSION));
         $payload = $extension === 'php'
             ? require $path
-            : json_decode((string) file_get_contents($path), true, flags: JSON_THROW_ON_ERROR);
+            : json_decode((string) file_get_contents($path), true);
 
         if (!is_array($payload)) {
-            throw new \InvalidArgumentException('Catalog payload must be an array.');
+            throw new \InvalidArgumentException('Catalog payload must be a JSON or PHP array.');
         }
 
         $rows = isset($payload['translations']) && is_array($payload['translations'])

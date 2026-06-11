@@ -21,6 +21,12 @@ final class LocaleManager implements LocaleManagerInterface
         return $this->locales->all();
     }
 
+    /** @return array<string,mixed>|null */
+    public function find(string $code): ?array
+    {
+        return $this->locales->find($code);
+    }
+
     public function enabled(): array
     {
         return $this->locales->enabled();

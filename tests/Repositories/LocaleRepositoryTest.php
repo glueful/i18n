@@ -6,6 +6,7 @@ namespace Glueful\Extensions\I18n\Tests\Repositories;
 
 use Glueful\Extensions\I18n\Repositories\LocaleRepository;
 use Glueful\Extensions\I18n\Tests\Support\I18nTestCase;
+use Glueful\Validation\ValidationException;
 
 final class LocaleRepositoryTest extends I18nTestCase
 {
@@ -18,7 +19,16 @@ final class LocaleRepositoryTest extends I18nTestCase
         self::assertSame('en', $repo->defaultCode());
         self::assertSame(['fr', 'en'], $repo->fallbackChain('fr', 'en'));
 
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(ValidationException::class);
         $repo->update('en', ['fallback_locale' => 'fr']);
+    }
+
+    public function testCreateRejectsDuplicateCodeAsValidationError(): void
+    {
+        $repo = new LocaleRepository($this->connection());
+        $repo->create(['code' => 'en', 'name' => 'English']);
+
+        $this->expectException(ValidationException::class);
+        $repo->create(['code' => 'en', 'name' => 'English again']);
     }
 }

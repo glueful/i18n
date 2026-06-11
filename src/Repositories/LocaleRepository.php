@@ -6,6 +6,7 @@ namespace Glueful\Extensions\I18n\Repositories;
 
 use Glueful\Database\Connection;
 use Glueful\Helpers\Utils;
+use Glueful\Validation\ValidationException;
 
 final class LocaleRepository
 {
@@ -20,6 +21,10 @@ final class LocaleRepository
     public function create(array $data): array
     {
         $code = $this->string($data, 'code');
+        if ($this->find($code) !== null) {
+            throw ValidationException::forField('code', sprintf('Locale "%s" already exists.', $code));
+        }
+
         $fallback = isset($data['fallback_locale']) && $data['fallback_locale'] !== ''
             ? (string) $data['fallback_locale']
             : null;
@@ -149,7 +154,7 @@ final class LocaleRepository
 
         while ($current !== '') {
             if (isset($seen[$current])) {
-                throw new \InvalidArgumentException('Locale fallback cycle detected.');
+                throw ValidationException::forField('fallback_locale', 'Locale fallback cycle detected.');
             }
             $seen[$current] = true;
             $row = $this->find($current);

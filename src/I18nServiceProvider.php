@@ -17,6 +17,7 @@ use Glueful\Extensions\I18n\Contracts\LocaleResolverInterface;
 use Glueful\Extensions\I18n\Contracts\TranslationRepositoryInterface;
 use Glueful\Extensions\I18n\Contracts\TranslatorInterface;
 use Glueful\Extensions\I18n\Http\Controllers\LocaleController;
+use Glueful\Extensions\I18n\Http\I18nPayloadValidator;
 use Glueful\Extensions\I18n\Http\Controllers\TranslationController;
 use Glueful\Extensions\I18n\Http\RequireI18nPermission;
 use Glueful\Extensions\I18n\Repositories\LocaleRepository;
@@ -64,6 +65,7 @@ final class I18nServiceProvider extends ServiceProvider
                 'autowire' => true,
                 'alias' => ['i18n_permission'],
             ],
+            I18nPayloadValidator::class => self::autowired(I18nPayloadValidator::class),
             LocaleController::class => self::autowired(LocaleController::class),
             TranslationController::class => self::autowired(TranslationController::class),
             LocaleListCommand::class => self::autowired(LocaleListCommand::class),
