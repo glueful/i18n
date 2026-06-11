@@ -40,16 +40,16 @@ final class I18nServiceProvider extends ServiceProvider
     {
         return [
             LocaleRepository::class => self::autowired(LocaleRepository::class),
-            TranslationRepository::class => self::autowired(TranslationRepository::class),
-            TranslationRepositoryInterface::class => ['alias' => TranslationRepository::class],
+            TranslationRepository::class => self::autowired(
+                TranslationRepository::class,
+                aliases: [TranslationRepositoryInterface::class]
+            ),
             MissingTranslationRepository::class => self::autowired(MissingTranslationRepository::class),
             TranslationCache::class => self::autowired(TranslationCache::class),
             MessageFormatter::class => self::autowired(MessageFormatter::class),
             MissingTranslationRecorder::class => self::autowired(MissingTranslationRecorder::class),
-            LocaleManager::class => self::autowired(LocaleManager::class),
-            LocaleManagerInterface::class => ['alias' => LocaleManager::class],
-            LocaleResolver::class => self::autowired(LocaleResolver::class),
-            LocaleResolverInterface::class => ['alias' => LocaleResolver::class],
+            LocaleManager::class => self::autowired(LocaleManager::class, aliases: [LocaleManagerInterface::class]),
+            LocaleResolver::class => self::autowired(LocaleResolver::class, aliases: [LocaleResolverInterface::class]),
             TranslationManager::class => [
                 'class' => TranslationManager::class,
                 'shared' => true,
@@ -75,10 +75,18 @@ final class I18nServiceProvider extends ServiceProvider
         ];
     }
 
-    /** @return array{class:class-string,shared:bool,autowire:bool} */
-    private static function autowired(string $class, bool $shared = true): array
+    /**
+     * @param list<string> $aliases
+     * @return array{class:class-string,shared:bool,autowire:bool,alias?:list<string>}
+     */
+    private static function autowired(string $class, bool $shared = true, array $aliases = []): array
     {
-        return ['class' => $class, 'shared' => $shared, 'autowire' => true];
+        $definition = ['class' => $class, 'shared' => $shared, 'autowire' => true];
+        if ($aliases !== []) {
+            $definition['alias'] = $aliases;
+        }
+
+        return $definition;
     }
 
     public function getName(): string

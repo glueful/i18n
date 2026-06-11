@@ -83,10 +83,15 @@ final class LocaleResolver implements LocaleResolverInterface
 
     private function allow(string $locale): bool
     {
-        foreach ($this->locales->enabled() as $row) {
+        $enabled = $this->locales->enabled();
+        foreach ($enabled as $row) {
             if ((string) $row['code'] === $locale) {
                 return true;
             }
+        }
+
+        if ($enabled !== []) {
+            return false;
         }
 
         $configured = (array) \config($this->context, 'i18n.enabled_locales', ['en']);
