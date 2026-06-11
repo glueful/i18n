@@ -6,10 +6,17 @@ namespace Glueful\Extensions\I18n\Services;
 
 final class MessageFormatter
 {
+    /**
+     * Matches ICU argument syntax for the block types we route to ICU:
+     * "{name, plural, ...}", "{name, select, ...}", "{name, selectordinal, ...}".
+     */
+    private const ICU_ARGUMENT_PATTERN =
+        '/\{\s*[a-zA-Z_][a-zA-Z0-9_]*\s*,\s*(?:plural|selectordinal|select)\s*,/';
+
     /** @param array<string, scalar|null> $parameters */
     public function format(string $message, array $parameters, string $locale): string
     {
-        if (class_exists(\MessageFormatter::class) && str_contains($message, 'plural')) {
+        if (class_exists(\MessageFormatter::class) && $this->usesIcuSyntax($message)) {
             $formatter = new \MessageFormatter($locale, $message);
             $formatted = $formatter->format($parameters);
             if (is_string($formatted)) {
@@ -25,7 +32,18 @@ final class MessageFormatter
         return $message;
     }
 
-    /** @param array<string, scalar|null> $parameters */
+    private function usesIcuSyntax(string $message): bool
+    {
+        return preg_match(self::ICU_ARGUMENT_PATTERN, $message) === 1;
+    }
+
+    /**
+     * No-intl fallback: handles only the two-branch "one {...} other {...}"
+     * plural form (with "#" count substitution); select/selectordinal and
+     * locale-specific plural categories require ext-intl.
+     *
+     * @param array<string, scalar|null> $parameters
+     */
     private function simplePlural(string $message, array $parameters): string
     {
         return (string) preg_replace_callback(

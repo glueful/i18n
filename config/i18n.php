@@ -10,6 +10,5 @@ return [
     'missing_tracking' => false,
     'missing_rate_limit_seconds' => 60,
     'db_overrides_catalogs' => true,
-    'cache_ttl' => 3600,
     'routes_enabled' => true,
 ];

@@ -54,6 +54,19 @@ final class ServiceProviderWiringTest extends I18nTestCase
         self::assertArrayHasKey(RequireI18nPermission::class, $definitions);
     }
 
+    public function testProviderVersionMatchesComposerManifest(): void
+    {
+        $manifest = json_decode((string) file_get_contents(dirname(__DIR__, 2) . '/composer.json'), true);
+        $expected = $manifest['extra']['glueful']['version'];
+
+        self::assertIsString($expected);
+        self::assertSame($expected, I18nServiceProvider::composerVersion());
+        self::assertSame(
+            $expected,
+            (new I18nServiceProvider($this->appContext()->getContainer()))->getVersion()
+        );
+    }
+
     public function testAliasesResolveThroughRealContainer(): void
     {
         $definitions = (new DefaultServicesLoader())->load(

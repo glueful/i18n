@@ -36,6 +36,22 @@ use Glueful\Permissions\Catalog\Permission;
 
 final class I18nServiceProvider extends ServiceProvider
 {
+    private static ?string $cachedVersion = null;
+
+    /**
+     * Read the extension version from composer.json's extra.glueful.version (cached).
+     */
+    public static function composerVersion(): string
+    {
+        if (self::$cachedVersion === null) {
+            $composer = json_decode((string) file_get_contents(__DIR__ . '/../composer.json'), true);
+            $version = is_array($composer) ? ($composer['extra']['glueful']['version'] ?? null) : null;
+            self::$cachedVersion = is_string($version) ? $version : '0.0.0';
+        }
+
+        return self::$cachedVersion;
+    }
+
     /** @return array<string,mixed> */
     public static function services(): array
     {
@@ -98,7 +114,7 @@ final class I18nServiceProvider extends ServiceProvider
 
     public function getVersion(): string
     {
-        return '0.1.0';
+        return self::composerVersion();
     }
 
     public function getDescription(): string

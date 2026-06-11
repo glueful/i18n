@@ -26,8 +26,8 @@ $router->group(['prefix' => '/i18n', 'middleware' => ['auth']], function (Router
      * @route POST /i18n/locales
      * @summary Create Locale
      * @description Creates a stored locale. Setting `is_default` clears the previous
-     *   default. A `fallback_locale` that would create a fallback cycle is rejected.
-     *   Requires `i18n.manage`.
+     *   default. Missing/malformed fields, a duplicate `code`, or a `fallback_locale`
+     *   that would create a fallback cycle are rejected with 422. Requires `i18n.manage`.
      * @tag I18n
      * @requestBody
      *   code:string="Unique locale code (e.g. en, fr, en-GB)" {required=code}
@@ -40,7 +40,7 @@ $router->group(['prefix' => '/i18n', 'middleware' => ['auth']], function (Router
      *   region:string="Optional region tag"
      * @response 201 application/json "Locale created"
      * @response 403 "Forbidden"
-     * @response 500 "Missing code or fallback cycle detected"
+     * @response 422 "Validation failed (missing/malformed fields, duplicate code, or fallback cycle)"
      */
     $router->post('/locales', [LocaleController::class, 'store'])
         ->middleware('i18n_permission:i18n.manage')
@@ -63,7 +63,8 @@ $router->group(['prefix' => '/i18n', 'middleware' => ['auth']], function (Router
      *   region:string="Region tag"
      * @response 200 application/json "Locale updated"
      * @response 403 "Forbidden"
-     * @response 500 "Unknown locale code or fallback cycle detected"
+     * @response 404 "Locale not found"
+     * @response 422 "Validation failed (empty payload, code change, malformed fields, or fallback cycle)"
      */
     $router->patch('/locales/{code}', [LocaleController::class, 'update'])
         ->middleware('i18n_permission:i18n.manage')
@@ -98,7 +99,7 @@ $router->group(['prefix' => '/i18n', 'middleware' => ['auth']], function (Router
      *   locale:string="Locale code (default: en)"
      * @response 201 application/json "Translation saved"
      * @response 403 "Forbidden"
-     * @response 500 "Missing key or value"
+     * @response 422 "Validation failed (missing key/value or malformed locale)"
      */
     $router->post('/translations', [TranslationController::class, 'store'])
         ->middleware('i18n_permission:i18n.manage')
@@ -114,7 +115,8 @@ $router->group(['prefix' => '/i18n', 'middleware' => ['auth']], function (Router
      *   value:string="New translated message" {required=value}
      * @response 200 application/json "Translation updated"
      * @response 403 "Forbidden"
-     * @response 500 "Missing value or unknown translation UUID"
+     * @response 404 "Translation not found"
+     * @response 422 "Validation failed (missing value)"
      */
     $router->patch('/translations/{uuid}', [TranslationController::class, 'update'])
         ->middleware('i18n_permission:i18n.manage')
@@ -148,7 +150,7 @@ $router->group(['prefix' => '/i18n', 'middleware' => ['auth']], function (Router
      *   path:string="Server-side path to a .json or .php catalog file" {required=path}
      * @response 200 application/json "Catalog imported (returns imported row count)"
      * @response 403 "Forbidden"
-     * @response 500 "Missing path or catalog file not found"
+     * @response 422 "Validation failed (missing path, unknown file, or malformed catalog payload)"
      */
     $router->post('/import', [TranslationController::class, 'import'])
         ->middleware('i18n_permission:i18n.import')
