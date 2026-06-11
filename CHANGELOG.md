@@ -10,7 +10,7 @@ First release. **Platform localization** for Glueful: a locale registry with
 fallback chains, persisted translation catalogs layered over file catalogs,
 message formatting with pluralization, optional missing-key tracking, catalog
 import/export, an HTTP management API, and CLI tooling. Requires
-**`glueful/framework >= 1.54.0`**.
+**`glueful/framework >= 1.55.0`**.
 
 ### Added
 
@@ -42,12 +42,15 @@ import/export, an HTTP management API, and CLI tooling. Requires
   translations override file catalog entries when
   `i18n.db_overrides_catalogs` is true (default); flip it to let files win.
 - **Pluralization without a hard intl dependency:** ICU `MessageFormatter` is
-  used when `ext-intl` is present (for messages containing a plural block);
-  otherwise a built-in `one`/`other` plural parser with `#` substitution and
-  simple `{param}` replacement applies.
+  used when `ext-intl` is present, gated on real ICU argument syntax for
+  `plural`, `select`, and `selectordinal` blocks (`{name, plural, ...}` etc.;
+  plain `{param}` messages keep the cheap substitution path). Without
+  `ext-intl`, a built-in fallback handles the two-branch `one`/`other` plural
+  form with `#` substitution plus simple `{param}` replacement;
+  `select`/`selectordinal` require `ext-intl`.
 - **Request-scoped bundle cache:** merged bundles are memoized in memory per
   `locale:domain:version`; writes bump the version and invalidate. No backend
-  cache in this release (`cache_ttl` is reserved and unwired).
+  cache in this release.
 - **Missing-key tracking (default OFF):** when `i18n.missing_tracking` is
   enabled, misses are upserted into `i18n_missing_translations` with hit
   counts, rate-limited per key by `i18n.missing_rate_limit_seconds`
@@ -60,6 +63,12 @@ import/export, an HTTP management API, and CLI tooling. Requires
   list/upsert/update, missing-key listing, catalog import and export -- all
   behind `auth` plus the extension-owned `i18n_permission` middleware. Routes
   carry OpenAPI docblock annotations.
+- **422/404 error envelopes:** write payloads go through
+  `I18nPayloadValidator` (whitelisted fields, locale-code format checks,
+  required key/value, import payload shape). Invalid input -- including
+  fallback-locale cycles and duplicate locale codes -- returns HTTP 422 with
+  field-keyed details; unknown locale codes and translation UUIDs return
+  HTTP 404. Input errors never render as 500.
 - **Permissions:** `i18n.view`, `i18n.manage`, `i18n.import`, and
   `i18n.export` registered in the framework permission catalog. The
   `i18n_permission` middleware calls `PermissionManager::can()` directly and
@@ -72,8 +81,9 @@ import/export, an HTTP management API, and CLI tooling. Requires
   (unique per `(domain, locale, key)`), and `i18n_missing_translations`.
 - **Config** (`config/i18n.php`): `default_locale`, `fallback_locale`,
   `enabled_locales`, `request_override`, `missing_tracking`,
-  `missing_rate_limit_seconds`, `db_overrides_catalogs`, `cache_ttl`
-  (reserved), `routes_enabled`.
+  `missing_rate_limit_seconds`, `db_overrides_catalogs`, `routes_enabled`.
+  Every shipped key is consumed; a backend-cache TTL will be added together
+  with a real backend cache.
 
 ### Boundaries
 

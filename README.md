@@ -19,7 +19,7 @@ php glueful extensions:enable i18n
 php glueful migrate:run
 ```
 
-Requires `glueful/framework >= 1.54.0`. `ext-intl` is optional: with it,
+Requires `glueful/framework >= 1.55.0`. `ext-intl` is optional: with it,
 pluralization goes through ICU MessageFormat; without it, a simple built-in
 plural parser is used (see "Pluralization").
 
@@ -93,12 +93,16 @@ $translator->trans('welcome.title', ['name' => 'Ada'], $locale);
 There is no hard `ext-intl` dependency; both paths understand the same
 `{count, plural, one {...} other {...}}` message shape:
 
-- **With `ext-intl`:** messages containing a `plural` block are formatted by
-  ICU `MessageFormatter` with full CLDR plural rules for the target locale.
-- **Without `ext-intl`:** a built-in fallback handles the two-branch
-  `one`/`other` form in place (`#` is replaced with the count), then simple
-  `{param}` substitution runs. Locale-specific plural categories beyond
-  `one`/`other` require `ext-intl`.
+- **With `ext-intl`:** messages using ICU argument syntax for a `plural`,
+  `select`, or `selectordinal` block (`{name, plural, ...}`,
+  `{name, select, ...}`, `{name, selectordinal, ...}`) are formatted by ICU
+  `MessageFormatter` with full CLDR rules for the target locale. Plain
+  `{param}` messages -- including ones that merely contain the word "plural"
+  outside such a block -- keep the cheap substitution path.
+- **Without `ext-intl`:** a built-in fallback handles only the two-branch
+  `one`/`other` plural form in place (`#` is replaced with the count), then
+  simple `{param}` substitution runs. `select`/`selectordinal` blocks and
+  locale-specific plural categories beyond `one`/`other` require `ext-intl`.
 
 ## Locale resolution
 
@@ -154,8 +158,7 @@ Bundle caching is request-scoped memoization: merged bundles are kept in
 memory keyed by `locale:domain:version`, and every write through the manager
 bumps the version and drops the stale entry. There is **no backend cache**
 (Redis or otherwise) in this release; each request/process rebuilds bundles
-on first use. The `cache_ttl` config key is reserved for a future backend
-cache and is currently unwired.
+on first use.
 
 ## Missing-key tracking
 
@@ -183,7 +186,6 @@ tracking off in production unless you are actively auditing.
 | `missing_tracking` | `false` | Record translation misses to the database. |
 | `missing_rate_limit_seconds` | `60` | Per-key re-record window (per-request state; see above). |
 | `db_overrides_catalogs` | `true` | DB translations win over file catalogs per key. |
-| `cache_ttl` | `3600` | Reserved; not consumed by the request-scoped cache in this release. |
 | `routes_enabled` | `true` | Register the `/i18n` HTTP routes. |
 
 ## HTTP API
@@ -204,11 +206,13 @@ with `i18n.routes_enabled = false`.
 | POST | `/i18n/import` | `i18n.import` | Import a server-side JSON/PHP catalog file by `path`. |
 | GET | `/i18n/export` | `i18n.export` | Export translations as a JSON catalog (`?locale=`, `?domain=` filters). |
 
-Note on validation errors: the controllers throw plain
-`InvalidArgumentException` / `RuntimeException` for missing fields, unknown
-codes/UUIDs, and fallback cycles. The framework handler does not map those
-types, so they currently surface as **HTTP 500**, not 404/422 -- the route
-annotations document this honestly.
+Error envelopes: write payloads are validated by `I18nPayloadValidator`
+(unknown fields are stripped). Invalid input -- missing or malformed fields,
+duplicate locale codes, fallback cycles, empty update payloads, attempts to
+change a locale `code`, and malformed import catalogs -- returns **HTTP 422**
+with the standard error envelope, field-keyed messages under
+`error.details`. An unknown locale `{code}` or translation `{uuid}` returns
+**HTTP 404**. Input errors never surface as 500.
 
 ## CLI
 
