@@ -221,6 +221,10 @@ annotations document this honestly.
 | `i18n:import <file>` | Imports a JSON or PHP catalog file (same payload shape as `POST /i18n/import`). |
 | `i18n:export [locale]` | Prints the JSON catalog for all or one locale. |
 
+Catalog import/export accepts JSON and PHP-array payloads and round-trips four
+fields per row: `domain`, `locale`, `key`, `value` -- an exported catalog can be
+re-imported losslessly.
+
 ## Permissions
 
 The extension registers four permissions in the framework permission catalog
@@ -235,7 +239,7 @@ The middleware calls `PermissionManager::can()` directly and **fails closed**:
 no authenticated identity, no resolvable `PermissionManager`, or a denied
 check all return 403.
 
-## Boundaries (Lemma)
+## Boundaries
 
 This extension owns **platform localization**: UI strings, supported locales,
 fallback rules, and translation catalogs for app/extension surfaces. Content
@@ -243,6 +247,11 @@ platforms such as Lemma own **content localization** -- localized content
 fields, slugs, routes, publishing state, and editorial translation workflow.
 Lemma should consume this extension's locale registry and translator rather
 than re-implement them, but its content models stay on its side of the line.
+
+Likewise, large asynchronous import/export orchestration (batched jobs,
+progress tracking, validation reports) belongs to `glueful/import-export`;
+this extension only owns catalog-shaped payloads and their synchronous
+round-trips.
 
 ## Schema
 
