@@ -11,6 +11,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - Harden HTTP catalog import so `POST /i18n/import` accepts only inline JSON catalog payloads and never executes caller-supplied server-side file paths; trusted file imports remain available through the CLI.
 - Fall back to simple substitution when a stored ICU message pattern is malformed instead of throwing an uncaught formatter exception.
 - Cap translation values at 65,535 bytes in HTTP validation and repository writes.
+- Add `i18n.missing_max_rows` to cap novel missing-key recording while still allowing existing missing rows to increment.
 
 ## [1.0.0] - 2026-06-11
 

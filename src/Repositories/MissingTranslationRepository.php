@@ -55,4 +55,19 @@ final class MissingTranslationRepository
 
         return $query->get();
     }
+
+    public function exists(string $domain, string $locale, string $key): bool
+    {
+        return $this->connection
+            ->table('i18n_missing_translations')
+            ->where('domain', '=', $domain)
+            ->where('locale', '=', $locale)
+            ->where('key', '=', $key)
+            ->exists();
+    }
+
+    public function count(): int
+    {
+        return $this->connection->table('i18n_missing_translations')->count();
+    }
 }

@@ -172,6 +172,8 @@ instance -- in a typical PHP-FPM deployment that means **per request**, so the
 limit mainly dedupes repeat misses within a single request (long-running
 workers get the full window). Each recorded miss is 1-2 queries; leave
 tracking off in production unless you are actively auditing.
+Novel missing keys stop recording once `i18n.missing_max_rows` is reached,
+while existing rows can still increment their hit count.
 
 ## Configuration
 
@@ -185,6 +187,7 @@ tracking off in production unless you are actively auditing.
 | `request_override` | `true` | Honor `?locale=` / `X-Locale` request overrides. |
 | `missing_tracking` | `false` | Record translation misses to the database. |
 | `missing_rate_limit_seconds` | `60` | Per-key re-record window (per-request state; see above). |
+| `missing_max_rows` | `10000` | Maximum missing-key rows; existing rows can still increment. |
 | `db_overrides_catalogs` | `true` | DB translations win over file catalogs per key. |
 | `routes_enabled` | `true` | Register the `/i18n` HTTP routes. |
 
