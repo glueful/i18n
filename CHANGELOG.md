@@ -14,6 +14,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - Add `i18n.missing_max_rows` to cap novel missing-key recording while still allowing existing missing rows to increment.
 - Add locale repository column allow-lists so direct repository calls cannot write unknown or immutable columns.
 - Preserve a stored default locale by forcing the first locale to enabled/default and rejecting updates that clear or disable the only default.
+- Document that translation output is raw and callers must escape it for the target rendering context.
 
 ## [1.0.0] - 2026-06-11
 

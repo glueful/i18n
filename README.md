@@ -104,6 +104,10 @@ There is no hard `ext-intl` dependency; both paths understand the same
   simple `{param}` substitution runs. `select`/`selectordinal` blocks and
   locale-specific plural categories beyond `one`/`other` require `ext-intl`.
 
+`trans()` returns raw translated text. It does not HTML-escape parameters or
+formatted output; callers must escape for the target context (HTML, attributes,
+JavaScript, Markdown, CLI, etc.).
+
 ## Locale resolution
 
 `LocaleResolver::resolveLocale($context)` accepts a locale string, a Symfony
