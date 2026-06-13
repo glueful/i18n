@@ -94,12 +94,12 @@ $router->group(['prefix' => '/i18n', 'middleware' => ['auth']], function (Router
      * @tag I18n
      * @requestBody
      *   key:string="Translation key (e.g. nav.publish)" {required=key}
-     *   value:string="Translated message; may contain {param} placeholders" {required=value}
+     *   value:string="Translated message, max 65,535 bytes; may contain {param} placeholders" {required=value}
      *   domain:string="Translation domain (default: messages)"
      *   locale:string="Locale code (default: en)"
      * @response 201 application/json "Translation saved"
      * @response 403 "Forbidden"
-     * @response 422 "Validation failed (missing key/value or malformed locale)"
+     * @response 422 "Validation failed (missing/oversized key/value or malformed locale)"
      */
     $router->post('/translations', [TranslationController::class, 'store'])
         ->middleware('i18n_permission:i18n.manage')
@@ -112,11 +112,11 @@ $router->group(['prefix' => '/i18n', 'middleware' => ['auth']], function (Router
      *   Requires `i18n.manage`.
      * @tag I18n
      * @requestBody
-     *   value:string="New translated message" {required=value}
+     *   value:string="New translated message, max 65,535 bytes" {required=value}
      * @response 200 application/json "Translation updated"
      * @response 403 "Forbidden"
      * @response 404 "Translation not found"
-     * @response 422 "Validation failed (missing value)"
+     * @response 422 "Validation failed (missing or oversized value)"
      */
     $router->patch('/translations/{uuid}', [TranslationController::class, 'update'])
         ->middleware('i18n_permission:i18n.manage')
@@ -144,7 +144,7 @@ $router->group(['prefix' => '/i18n', 'middleware' => ['auth']], function (Router
      * @description Imports an inline JSON catalog and upserts each row into the
      *   translation store. The `catalog` value is either a list of rows or an object
      *   with a `translations` list; each row carries `domain`, `locale`, `key`, and
-     *   `value`. Server-side file imports are CLI-only. Requires `i18n.import`.
+     *   `value` (max 65,535 bytes). Server-side file imports are CLI-only. Requires `i18n.import`.
      * @tag I18n
      * @requestBody
      *   catalog:object="Catalog object or array of translation rows" {required=catalog}

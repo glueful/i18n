@@ -229,6 +229,8 @@ HTTP catalog import accepts an inline JSON `catalog` object or array. CLI
 catalog import accepts JSON and PHP-array files from trusted operator-supplied
 paths. Both forms round-trip four fields per row: `domain`, `locale`, `key`,
 `value` -- an exported catalog can be re-imported losslessly.
+Translation values are capped at 65,535 bytes across HTTP, CLI import, and
+direct repository writes.
 
 ## Permissions
 

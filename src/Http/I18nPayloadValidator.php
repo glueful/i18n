@@ -17,6 +17,7 @@ final class I18nPayloadValidator
 {
     private const LOCALE_CODE_PATTERN = '/\A[a-z]{2,3}(-[a-z0-9]{2,8}){0,2}\z/i';
     private const LOCALE_CODE_MAX_LENGTH = 16;
+    private const TRANSLATION_VALUE_MAX_LENGTH = 65535;
     private const DIRECTIONS = ['ltr', 'rtl'];
 
     /**
@@ -85,7 +86,12 @@ final class I18nPayloadValidator
         $errors = [];
 
         $key = $this->requiredString($payload['key'] ?? null, 'key', 255, $errors);
-        $value = $this->requiredString($payload['value'] ?? null, 'value', null, $errors);
+        $value = $this->requiredString(
+            $payload['value'] ?? null,
+            'value',
+            self::TRANSLATION_VALUE_MAX_LENGTH,
+            $errors
+        );
         $domain = array_key_exists('domain', $payload)
             ? $this->requiredString($payload['domain'], 'domain', 120, $errors)
             : 'messages';
@@ -110,7 +116,12 @@ final class I18nPayloadValidator
     public function validateTranslationValue(array $payload): array
     {
         $errors = [];
-        $value = $this->requiredString($payload['value'] ?? null, 'value', null, $errors);
+        $value = $this->requiredString(
+            $payload['value'] ?? null,
+            'value',
+            self::TRANSLATION_VALUE_MAX_LENGTH,
+            $errors
+        );
 
         $this->throwIfErrors($errors);
 

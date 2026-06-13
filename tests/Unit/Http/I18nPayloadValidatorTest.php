@@ -187,6 +187,26 @@ final class I18nPayloadValidatorTest extends TestCase
         }
     }
 
+    public function testTranslationUpsertRejectsOversizedValue(): void
+    {
+        try {
+            $this->validator->validateTranslationUpsert(['key' => 'large', 'value' => str_repeat('a', 65536)]);
+            self::fail('Expected ValidationException.');
+        } catch (ValidationException $e) {
+            self::assertTrue($e->hasError('value'));
+        }
+    }
+
+    public function testTranslationValueRejectsOversizedValue(): void
+    {
+        try {
+            $this->validator->validateTranslationValue(['value' => str_repeat('a', 65536)]);
+            self::fail('Expected ValidationException.');
+        } catch (ValidationException $e) {
+            self::assertTrue($e->hasError('value'));
+        }
+    }
+
     public function testImportRequiresCatalog(): void
     {
         try {
