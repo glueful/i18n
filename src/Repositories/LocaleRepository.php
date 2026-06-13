@@ -54,18 +54,23 @@ final class LocaleRepository
             $this->assertNoFallbackCycle($code, $fallback);
         }
 
+        $isFirstLocale = $this->count() === 0;
         $now = $this->now();
         $row = array_merge([
             'uuid' => Utils::generateNanoID(12),
             'native_name' => null,
             'enabled' => true,
-            'is_default' => false,
+            'is_default' => $isFirstLocale,
             'fallback_locale' => $fallback,
             'direction' => 'ltr',
             'region' => null,
             'created_at' => $now,
             'updated_at' => $now,
         ], $data, ['fallback_locale' => $fallback]);
+        if ($isFirstLocale) {
+            $row['enabled'] = true;
+            $row['is_default'] = true;
+        }
 
         if ((bool) $row['is_default']) {
             $this->connection->table('i18n_locales')->executeModification(
@@ -94,6 +99,13 @@ final class LocaleRepository
                 $this->assertNoFallbackCycle($code, $fallback);
             }
             $data['fallback_locale'] = $fallback;
+        }
+
+        if (
+            (array_key_exists('is_default', $data) && (bool) $data['is_default'] === false)
+            || (array_key_exists('enabled', $data) && (bool) $data['enabled'] === false)
+        ) {
+            $this->assertNotOnlyDefault($code);
         }
 
         if (($data['is_default'] ?? false) === true) {
@@ -143,6 +155,11 @@ final class LocaleRepository
         return $row !== null ? (string) $row['code'] : $fallback;
     }
 
+    public function count(): int
+    {
+        return $this->connection->table('i18n_locales')->count();
+    }
+
     /** @return list<string> */
     public function fallbackChain(string $locale, string $globalFallback): array
     {
@@ -182,6 +199,19 @@ final class LocaleRepository
             $seen[$current] = true;
             $row = $this->find($current);
             $current = is_array($row) ? (string) ($row['fallback_locale'] ?? '') : '';
+        }
+    }
+
+    private function assertNotOnlyDefault(string $code): void
+    {
+        $row = $this->find($code);
+        if ($row === null || (bool) ($row['is_default'] ?? false) !== true) {
+            return;
+        }
+
+        $defaultCount = $this->connection->table('i18n_locales')->where('is_default', '=', true)->count();
+        if ($defaultCount <= 1) {
+            throw ValidationException::forField('is_default', 'At least one stored default locale is required.');
         }
     }
 

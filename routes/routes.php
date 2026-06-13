@@ -25,9 +25,10 @@ $router->group(['prefix' => '/i18n', 'middleware' => ['auth']], function (Router
     /**
      * @route POST /i18n/locales
      * @summary Create Locale
-     * @description Creates a stored locale. Setting `is_default` clears the previous
-     *   default. Missing/malformed fields, a duplicate `code`, or a `fallback_locale`
-     *   that would create a fallback cycle are rejected with 422. Requires `i18n.manage`.
+     * @description Creates a stored locale. The first stored locale is forced to
+     *   enabled/default. Setting `is_default` clears the previous default.
+     *   Missing/malformed fields, a duplicate `code`, or a `fallback_locale` that
+     *   would create a fallback cycle are rejected with 422. Requires `i18n.manage`.
      * @tag I18n
      * @requestBody
      *   code:string="Unique locale code (e.g. en, fr, en-GB)" {required=code}
@@ -50,8 +51,9 @@ $router->group(['prefix' => '/i18n', 'middleware' => ['auth']], function (Router
      * @route PATCH /i18n/locales/{code}
      * @summary Update Locale
      * @description Partially updates a stored locale by code. All body fields are
-     *   optional; `fallback_locale` is cycle-checked and `is_default: true` clears the
-     *   previous default. Requires `i18n.manage`.
+     *   optional; `fallback_locale` is cycle-checked, `is_default: true` clears the
+     *   previous default, and the only stored default locale cannot be cleared or
+     *   disabled. Requires `i18n.manage`.
      * @tag I18n
      * @requestBody
      *   name:string="Display name"
@@ -64,7 +66,7 @@ $router->group(['prefix' => '/i18n', 'middleware' => ['auth']], function (Router
      * @response 200 application/json "Locale updated"
      * @response 403 "Forbidden"
      * @response 404 "Locale not found"
-     * @response 422 "Validation failed (empty payload, code change, malformed fields, or fallback cycle)"
+     * @response 422 "Validation failed (empty payload, code change, malformed fields, fallback cycle, or clearing/disabling the only default)"
      */
     $router->patch('/locales/{code}', [LocaleController::class, 'update'])
         ->middleware('i18n_permission:i18n.manage')

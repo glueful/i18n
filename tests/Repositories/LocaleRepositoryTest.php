@@ -61,4 +61,29 @@ final class LocaleRepositoryTest extends I18nTestCase
         self::assertNotSame('attackeruuid', $row['uuid']);
         self::assertNull($repo->find('fr'));
     }
+
+    public function testFirstCreatedLocaleBecomesDefault(): void
+    {
+        $row = (new LocaleRepository($this->connection()))->create(['code' => 'en', 'name' => 'English']);
+
+        self::assertTrue((bool) $row['is_default']);
+    }
+
+    public function testUpdateRejectsClearingOnlyDefaultLocale(): void
+    {
+        $repo = new LocaleRepository($this->connection());
+        $repo->create(['code' => 'en', 'name' => 'English', 'is_default' => true]);
+
+        $this->expectException(ValidationException::class);
+        $repo->update('en', ['is_default' => false]);
+    }
+
+    public function testUpdateRejectsDisablingOnlyDefaultLocale(): void
+    {
+        $repo = new LocaleRepository($this->connection());
+        $repo->create(['code' => 'en', 'name' => 'English', 'is_default' => true]);
+
+        $this->expectException(ValidationException::class);
+        $repo->update('en', ['enabled' => false]);
+    }
 }

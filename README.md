@@ -191,6 +191,10 @@ while existing rows can still increment their hit count.
 | `db_overrides_catalogs` | `true` | DB translations win over file catalogs per key. |
 | `routes_enabled` | `true` | Register the `/i18n` HTTP routes. |
 
+The first stored locale is forced to enabled/default. Once a stored default
+exists, the repository rejects updates that would clear or disable the only
+default locale.
+
 ## HTTP API
 
 All routes are mounted under `/i18n`, require `auth`, and are gated by the
