@@ -27,6 +27,12 @@ final class CatalogImporter
             throw new \InvalidArgumentException('Catalog payload must be a JSON or PHP array.');
         }
 
+        return $this->importPayload($payload);
+    }
+
+    /** @param array<mixed> $payload */
+    public function importPayload(array $payload): int
+    {
         $rows = isset($payload['translations']) && is_array($payload['translations'])
             ? $payload['translations']
             : $payload;

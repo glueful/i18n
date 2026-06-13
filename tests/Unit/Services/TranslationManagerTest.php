@@ -43,6 +43,25 @@ final class TranslationManagerTest extends I18nTestCase
         self::assertSame('missing.key', $this->manager()->trans('missing.key', [], 'en'));
     }
 
+    public function testMissingTrackingStopsRecordingNovelKeysAtConfiguredRowCap(): void
+    {
+        $this->seedLocale();
+        $this->setConfig('i18n.missing_tracking', true);
+        $this->setConfig('i18n.missing_max_rows', 1);
+        $this->setConfig('i18n.missing_rate_limit_seconds', 0);
+        $manager = $this->manager();
+
+        $manager->trans('missing.one', [], 'en');
+        $manager->trans('missing.two', [], 'en');
+        $manager->trans('missing.one', [], 'en');
+
+        $rows = (new MissingTranslationRepository($this->connection()))->list('en', 'messages');
+
+        self::assertCount(1, $rows);
+        self::assertSame('missing.one', $rows[0]['key']);
+        self::assertSame(2, (int) $rows[0]['hits']);
+    }
+
     private function manager(): TranslationManager
     {
         $locales = new LocaleManager(new LocaleRepository($this->connection()), $this->appContext());

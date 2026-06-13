@@ -121,14 +121,14 @@ final class TranslationControllerTest extends I18nTestCase
         self::assertSame(422, $response->getStatusCode());
     }
 
-    public function testImportMissingPathReturns422(): void
+    public function testImportMissingCatalogReturns422(): void
     {
         $response = $this->controller()->import($this->jsonRequest([]));
 
         self::assertSame(422, $response->getStatusCode());
     }
 
-    public function testImportUnknownFileReturns422(): void
+    public function testImportRejectsPathOnlyPayload(): void
     {
         $response = $this->controller()->import(
             $this->jsonRequest(['path' => sys_get_temp_dir() . '/i18n-definitely-missing.json'])
@@ -137,32 +137,28 @@ final class TranslationControllerTest extends I18nTestCase
         self::assertSame(422, $response->getStatusCode());
     }
 
-    public function testImportMalformedJsonReturns422(): void
+    public function testImportDoesNotExecutePhpPathPayload(): void
     {
-        $path = $this->tempFile('{not valid json');
+        $marker = sys_get_temp_dir() . '/i18n-http-import-rce-' . bin2hex(random_bytes(4));
+        $path = $this->tempFile(
+            "<?php\nfile_put_contents(" . var_export($marker, true) . ", 'hit');\nreturn [];\n",
+            'php'
+        );
 
         $response = $this->controller()->import($this->jsonRequest(['path' => $path]));
 
         self::assertSame(422, $response->getStatusCode());
-    }
-
-    public function testImportNonArrayPayloadReturns422(): void
-    {
-        $path = $this->tempFile('"just a string"');
-
-        $response = $this->controller()->import($this->jsonRequest(['path' => $path]));
-
-        self::assertSame(422, $response->getStatusCode());
+        self::assertFileDoesNotExist($marker);
     }
 
     public function testImportHappyPathReturnsCount(): void
     {
-        $path = $this->tempFile((string) json_encode([
-            ['domain' => 'messages', 'locale' => 'en', 'key' => 'hello', 'value' => 'Hello'],
-            ['domain' => 'messages', 'locale' => 'fr', 'key' => 'hello', 'value' => 'Bonjour'],
+        $response = $this->controller()->import($this->jsonRequest([
+            'catalog' => [
+                ['domain' => 'messages', 'locale' => 'en', 'key' => 'hello', 'value' => 'Hello'],
+                ['domain' => 'messages', 'locale' => 'fr', 'key' => 'hello', 'value' => 'Bonjour'],
+            ],
         ]));
-
-        $response = $this->controller()->import($this->jsonRequest(['path' => $path]));
 
         self::assertSame(200, $response->getStatusCode());
         $body = json_decode((string) $response->getContent(), true);

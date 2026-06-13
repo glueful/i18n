@@ -74,12 +74,12 @@ final class TranslationController
     public function import(Request $request): Response
     {
         try {
-            $path = $this->validator->validateImport($this->body($request));
-            $count = $this->importer->importFile($path);
+            $catalog = $this->validator->validateImport($this->body($request));
+            $count = $this->importer->importPayload($catalog);
         } catch (ValidationException $e) {
             return Response::validation($e->errors(), $e->getMessage());
         } catch (\InvalidArgumentException $e) {
-            return Response::validation(['path' => [$e->getMessage()]]);
+            return Response::validation(['catalog' => [$e->getMessage()]]);
         }
 
         return Response::success(['imported' => $count], 'Catalog imported.');

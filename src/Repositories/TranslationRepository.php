@@ -10,6 +10,8 @@ use Glueful\Helpers\Utils;
 
 final class TranslationRepository implements TranslationRepositoryInterface
 {
+    private const VALUE_MAX_LENGTH = 65535;
+
     public function __construct(private Connection $connection)
     {
     }
@@ -29,6 +31,8 @@ final class TranslationRepository implements TranslationRepositoryInterface
 
     public function put(string $domain, string $locale, string $key, string $value): void
     {
+        $this->assertValueLength($value);
+
         $now = date('Y-m-d H:i:s');
         $existing = $this->connection
             ->table('i18n_translations')
@@ -111,6 +115,8 @@ final class TranslationRepository implements TranslationRepositoryInterface
     /** @return array<string,mixed> */
     public function updateByUuid(string $uuid, string $value): array
     {
+        $this->assertValueLength($value);
+
         $this->connection
             ->table('i18n_translations')
             ->where('uuid', '=', $uuid)
@@ -122,5 +128,14 @@ final class TranslationRepository implements TranslationRepositoryInterface
         }
 
         return $row;
+    }
+
+    private function assertValueLength(string $value): void
+    {
+        if (strlen($value) > self::VALUE_MAX_LENGTH) {
+            throw new \InvalidArgumentException(
+                sprintf('Translation value must be %d bytes or fewer.', self::VALUE_MAX_LENGTH)
+            );
+        }
     }
 }

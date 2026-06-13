@@ -17,10 +17,15 @@ final class MessageFormatter
     public function format(string $message, array $parameters, string $locale): string
     {
         if (class_exists(\MessageFormatter::class) && $this->usesIcuSyntax($message)) {
-            $formatter = new \MessageFormatter($locale, $message);
-            $formatted = $formatter->format($parameters);
-            if (is_string($formatted)) {
-                return $formatted;
+            try {
+                $formatter = new \MessageFormatter($locale, $message);
+                $formatted = $formatter->format($parameters);
+                if (is_string($formatted)) {
+                    return $formatted;
+                }
+            } catch (\Throwable) {
+                // Stored translations are editor-controlled data; malformed ICU
+                // patterns should degrade to simple substitution, not 500.
             }
         }
 

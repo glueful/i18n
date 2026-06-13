@@ -4,6 +4,20 @@ All notable changes to `glueful/i18n` will be documented in this file.
 
 The format is based on Keep a Changelog, and this project adheres to Semantic Versioning.
 
+## [Unreleased]
+
+## [1.0.1] - 2026-06-13
+
+### Fixed
+
+- Harden HTTP catalog import so `POST /i18n/import` accepts only inline JSON catalog payloads and never executes caller-supplied server-side file paths; trusted file imports remain available through the CLI.
+- Fall back to simple substitution when a stored ICU message pattern is malformed instead of throwing an uncaught formatter exception.
+- Cap translation values at 65,535 bytes in HTTP validation and repository writes.
+- Add `i18n.missing_max_rows` to cap novel missing-key recording while still allowing existing missing rows to increment.
+- Add locale repository column allow-lists so direct repository calls cannot write unknown or immutable columns.
+- Preserve a stored default locale by forcing the first locale to enabled/default and rejecting updates that clear or disable the only default.
+- Document that translation output is raw and callers must escape it for the target rendering context.
+
 ## [1.0.0] - 2026-06-11
 
 First release. **Platform localization** for Glueful: a locale registry with

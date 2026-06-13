@@ -20,6 +20,13 @@ final class TranslationRepositoryTest extends I18nTestCase
         self::assertSame(['hello' => 'Hi'], $repo->bundle('en', 'messages'));
     }
 
+    public function testPutRejectsOversizedValue(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+
+        (new TranslationRepository($this->connection()))->put('messages', 'en', 'large', str_repeat('a', 65536));
+    }
+
     public function testMissingHitIncrements(): void
     {
         $repo = new MissingTranslationRepository($this->connection());

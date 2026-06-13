@@ -31,6 +31,15 @@ final class MissingTranslationRecorder
             return;
         }
 
+        $maxRows = (int) \config($this->context, 'i18n.missing_max_rows', 10000);
+        if (
+            $maxRows > 0
+            && !$this->missing->exists($domain, $locale, $key)
+            && $this->missing->count() >= $maxRows
+        ) {
+            return;
+        }
+
         $this->lastRecordedAt[$cacheKey] = $now;
         $this->missing->record($domain, $locale, $key);
     }

@@ -104,6 +104,10 @@ There is no hard `ext-intl` dependency; both paths understand the same
   simple `{param}` substitution runs. `select`/`selectordinal` blocks and
   locale-specific plural categories beyond `one`/`other` require `ext-intl`.
 
+`trans()` returns raw translated text. It does not HTML-escape parameters or
+formatted output; callers must escape for the target context (HTML, attributes,
+JavaScript, Markdown, CLI, etc.).
+
 ## Locale resolution
 
 `LocaleResolver::resolveLocale($context)` accepts a locale string, a Symfony
@@ -172,6 +176,8 @@ instance -- in a typical PHP-FPM deployment that means **per request**, so the
 limit mainly dedupes repeat misses within a single request (long-running
 workers get the full window). Each recorded miss is 1-2 queries; leave
 tracking off in production unless you are actively auditing.
+Novel missing keys stop recording once `i18n.missing_max_rows` is reached,
+while existing rows can still increment their hit count.
 
 ## Configuration
 
@@ -185,8 +191,13 @@ tracking off in production unless you are actively auditing.
 | `request_override` | `true` | Honor `?locale=` / `X-Locale` request overrides. |
 | `missing_tracking` | `false` | Record translation misses to the database. |
 | `missing_rate_limit_seconds` | `60` | Per-key re-record window (per-request state; see above). |
+| `missing_max_rows` | `10000` | Maximum missing-key rows; existing rows can still increment. |
 | `db_overrides_catalogs` | `true` | DB translations win over file catalogs per key. |
 | `routes_enabled` | `true` | Register the `/i18n` HTTP routes. |
+
+The first stored locale is forced to enabled/default. Once a stored default
+exists, the repository rejects updates that would clear or disable the only
+default locale.
 
 ## HTTP API
 
@@ -203,7 +214,7 @@ with `i18n.routes_enabled = false`.
 | POST | `/i18n/translations` | `i18n.manage` | Upsert a translation on `(domain, locale, key)`. |
 | PATCH | `/i18n/translations/{uuid}` | `i18n.manage` | Update one translation's value. |
 | GET | `/i18n/missing` | `i18n.view` | List recorded missing keys (`?locale=`, `?domain=` filters). |
-| POST | `/i18n/import` | `i18n.import` | Import a server-side JSON/PHP catalog file by `path`. |
+| POST | `/i18n/import` | `i18n.import` | Import an inline JSON catalog from the `catalog` payload field. |
 | GET | `/i18n/export` | `i18n.export` | Export translations as a JSON catalog (`?locale=`, `?domain=` filters). |
 
 Error envelopes: write payloads are validated by `I18nPayloadValidator`
@@ -222,12 +233,15 @@ with the standard error envelope, field-keyed messages under
 | `i18n:missing` | Tables all recorded missing translations with hit counts. |
 | `i18n:sync-catalogs <directory> [domain]` | Globs `messages.*.php` files in the directory, derives the locale from each filename, and upserts every scalar key/value into `i18n_translations` under the given domain (default `messages`). One-way: files into DB. |
 | `i18n:validate` | Builds the set of known `(domain, key)` identities from **stored** translations and reports, per enabled locale, every identity that locale is missing. Exits non-zero when gaps exist. DB-only: file catalogs are not inspected. |
-| `i18n:import <file>` | Imports a JSON or PHP catalog file (same payload shape as `POST /i18n/import`). |
+| `i18n:import <file>` | Imports a JSON or PHP catalog file from a trusted operator-supplied path. |
 | `i18n:export [locale]` | Prints the JSON catalog for all or one locale. |
 
-Catalog import/export accepts JSON and PHP-array payloads and round-trips four
-fields per row: `domain`, `locale`, `key`, `value` -- an exported catalog can be
-re-imported losslessly.
+HTTP catalog import accepts an inline JSON `catalog` object or array. CLI
+catalog import accepts JSON and PHP-array files from trusted operator-supplied
+paths. Both forms round-trip four fields per row: `domain`, `locale`, `key`,
+`value` -- an exported catalog can be re-imported losslessly.
+Translation values are capped at 65,535 bytes across HTTP, CLI import, and
+direct repository writes.
 
 ## Permissions
 
