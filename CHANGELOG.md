@@ -6,6 +6,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-06-13
+
 ### Fixed
 
 - Harden HTTP catalog import so `POST /i18n/import` accepts only inline JSON catalog payloads and never executes caller-supplied server-side file paths; trusted file imports remain available through the CLI.
