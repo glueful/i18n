@@ -117,15 +117,21 @@ final class I18nPayloadValidator
         return ['value' => (string) $value];
     }
 
-    /** @param array<string,mixed> $payload */
-    public function validateImport(array $payload): string
+    /**
+     * @param array<string,mixed> $payload
+     * @return array<mixed>
+     */
+    public function validateImport(array $payload): array
     {
         $errors = [];
-        $path = $this->requiredString($payload['path'] ?? null, 'path', null, $errors);
+        $catalog = $payload['catalog'] ?? null;
+        if (!is_array($catalog)) {
+            $errors['catalog'][] = 'catalog must be an array or object.';
+        }
 
         $this->throwIfErrors($errors);
 
-        return (string) $path;
+        return $catalog;
     }
 
     /**

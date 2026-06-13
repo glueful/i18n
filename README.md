@@ -203,7 +203,7 @@ with `i18n.routes_enabled = false`.
 | POST | `/i18n/translations` | `i18n.manage` | Upsert a translation on `(domain, locale, key)`. |
 | PATCH | `/i18n/translations/{uuid}` | `i18n.manage` | Update one translation's value. |
 | GET | `/i18n/missing` | `i18n.view` | List recorded missing keys (`?locale=`, `?domain=` filters). |
-| POST | `/i18n/import` | `i18n.import` | Import a server-side JSON/PHP catalog file by `path`. |
+| POST | `/i18n/import` | `i18n.import` | Import an inline JSON catalog from the `catalog` payload field. |
 | GET | `/i18n/export` | `i18n.export` | Export translations as a JSON catalog (`?locale=`, `?domain=` filters). |
 
 Error envelopes: write payloads are validated by `I18nPayloadValidator`
@@ -222,12 +222,13 @@ with the standard error envelope, field-keyed messages under
 | `i18n:missing` | Tables all recorded missing translations with hit counts. |
 | `i18n:sync-catalogs <directory> [domain]` | Globs `messages.*.php` files in the directory, derives the locale from each filename, and upserts every scalar key/value into `i18n_translations` under the given domain (default `messages`). One-way: files into DB. |
 | `i18n:validate` | Builds the set of known `(domain, key)` identities from **stored** translations and reports, per enabled locale, every identity that locale is missing. Exits non-zero when gaps exist. DB-only: file catalogs are not inspected. |
-| `i18n:import <file>` | Imports a JSON or PHP catalog file (same payload shape as `POST /i18n/import`). |
+| `i18n:import <file>` | Imports a JSON or PHP catalog file from a trusted operator-supplied path. |
 | `i18n:export [locale]` | Prints the JSON catalog for all or one locale. |
 
-Catalog import/export accepts JSON and PHP-array payloads and round-trips four
-fields per row: `domain`, `locale`, `key`, `value` -- an exported catalog can be
-re-imported losslessly.
+HTTP catalog import accepts an inline JSON `catalog` object or array. CLI
+catalog import accepts JSON and PHP-array files from trusted operator-supplied
+paths. Both forms round-trip four fields per row: `domain`, `locale`, `key`,
+`value` -- an exported catalog can be re-imported losslessly.
 
 ## Permissions
 

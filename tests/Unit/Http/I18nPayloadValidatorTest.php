@@ -187,23 +187,30 @@ final class I18nPayloadValidatorTest extends TestCase
         }
     }
 
-    public function testImportRequiresPath(): void
+    public function testImportRequiresCatalog(): void
     {
         try {
             $this->validator->validateImport([]);
             self::fail('Expected ValidationException.');
         } catch (ValidationException $e) {
-            self::assertTrue($e->hasError('path'));
+            self::assertTrue($e->hasError('catalog'));
         }
     }
 
-    public function testImportRejectsNonStringPath(): void
+    public function testImportRejectsNonArrayCatalog(): void
     {
         try {
-            $this->validator->validateImport(['path' => ['nested']]);
+            $this->validator->validateImport(['catalog' => 'not an array']);
             self::fail('Expected ValidationException.');
         } catch (ValidationException $e) {
-            self::assertTrue($e->hasError('path'));
+            self::assertTrue($e->hasError('catalog'));
         }
+    }
+
+    public function testImportReturnsCatalogPayload(): void
+    {
+        $catalog = [['key' => 'hello', 'value' => 'Hello']];
+
+        self::assertSame($catalog, $this->validator->validateImport(['catalog' => $catalog]));
     }
 }

@@ -141,16 +141,16 @@ $router->group(['prefix' => '/i18n', 'middleware' => ['auth']], function (Router
     /**
      * @route POST /i18n/import
      * @summary Import Translation Catalog
-     * @description Imports a server-side JSON or PHP catalog file and upserts each row
-     *   into the translation store. The payload is either a top-level list of rows or
-     *   an object with a `translations` list; each row carries `domain`, `locale`,
-     *   `key`, and `value`. Requires `i18n.import`.
+     * @description Imports an inline JSON catalog and upserts each row into the
+     *   translation store. The `catalog` value is either a list of rows or an object
+     *   with a `translations` list; each row carries `domain`, `locale`, `key`, and
+     *   `value`. Server-side file imports are CLI-only. Requires `i18n.import`.
      * @tag I18n
      * @requestBody
-     *   path:string="Server-side path to a .json or .php catalog file" {required=path}
+     *   catalog:object="Catalog object or array of translation rows" {required=catalog}
      * @response 200 application/json "Catalog imported (returns imported row count)"
      * @response 403 "Forbidden"
-     * @response 422 "Validation failed (missing path, unknown file, or malformed catalog payload)"
+     * @response 422 "Validation failed (missing or malformed catalog payload)"
      */
     $router->post('/import', [TranslationController::class, 'import'])
         ->middleware('i18n_permission:i18n.import')

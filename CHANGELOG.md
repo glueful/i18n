@@ -4,6 +4,12 @@ All notable changes to `glueful/i18n` will be documented in this file.
 
 The format is based on Keep a Changelog, and this project adheres to Semantic Versioning.
 
+## [Unreleased]
+
+### Fixed
+
+- Harden HTTP catalog import so `POST /i18n/import` accepts only inline JSON catalog payloads and never executes caller-supplied server-side file paths; trusted file imports remain available through the CLI.
+
 ## [1.0.0] - 2026-06-11
 
 First release. **Platform localization** for Glueful: a locale registry with
