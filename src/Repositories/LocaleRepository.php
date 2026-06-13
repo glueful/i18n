@@ -10,6 +10,27 @@ use Glueful\Validation\ValidationException;
 
 final class LocaleRepository
 {
+    private const CREATE_COLUMNS = [
+        'code',
+        'name',
+        'native_name',
+        'enabled',
+        'is_default',
+        'fallback_locale',
+        'direction',
+        'region',
+    ];
+
+    private const UPDATE_COLUMNS = [
+        'name',
+        'native_name',
+        'enabled',
+        'is_default',
+        'fallback_locale',
+        'direction',
+        'region',
+    ];
+
     public function __construct(private Connection $connection)
     {
     }
@@ -20,6 +41,7 @@ final class LocaleRepository
      */
     public function create(array $data): array
     {
+        $data = $this->only($data, self::CREATE_COLUMNS);
         $code = $this->string($data, 'code');
         if ($this->find($code) !== null) {
             throw ValidationException::forField('code', sprintf('Locale "%s" already exists.', $code));
@@ -63,6 +85,7 @@ final class LocaleRepository
      */
     public function update(string $code, array $data): array
     {
+        $data = $this->only($data, self::UPDATE_COLUMNS);
         if (array_key_exists('fallback_locale', $data)) {
             $fallback = $data['fallback_locale'] !== null && $data['fallback_locale'] !== ''
                 ? (string) $data['fallback_locale']
@@ -176,6 +199,16 @@ final class LocaleRepository
         }
 
         return (string) $value;
+    }
+
+    /**
+     * @param array<string,mixed> $data
+     * @param list<string> $columns
+     * @return array<string,mixed>
+     */
+    private function only(array $data, array $columns): array
+    {
+        return array_intersect_key($data, array_flip($columns));
     }
 
     private function now(): string

@@ -31,4 +31,34 @@ final class LocaleRepositoryTest extends I18nTestCase
         $this->expectException(ValidationException::class);
         $repo->create(['code' => 'en', 'name' => 'English again']);
     }
+
+    public function testCreateStripsUnknownFields(): void
+    {
+        $row = (new LocaleRepository($this->connection()))->create([
+            'code' => 'en',
+            'name' => 'English',
+            'unexpected_column' => 'ignored',
+        ]);
+
+        self::assertArrayNotHasKey('unexpected_column', $row);
+        self::assertSame('English', $row['name']);
+    }
+
+    public function testUpdateAllowsOnlyMutableLocaleColumns(): void
+    {
+        $repo = new LocaleRepository($this->connection());
+        $repo->create(['code' => 'en', 'name' => 'English']);
+
+        $row = $repo->update('en', [
+            'code' => 'fr',
+            'name' => 'English Updated',
+            'uuid' => 'attackeruuid',
+            'unexpected_column' => 'ignored',
+        ]);
+
+        self::assertSame('en', $row['code']);
+        self::assertSame('English Updated', $row['name']);
+        self::assertNotSame('attackeruuid', $row['uuid']);
+        self::assertNull($repo->find('fr'));
+    }
 }

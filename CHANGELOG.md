@@ -12,6 +12,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - Fall back to simple substitution when a stored ICU message pattern is malformed instead of throwing an uncaught formatter exception.
 - Cap translation values at 65,535 bytes in HTTP validation and repository writes.
 - Add `i18n.missing_max_rows` to cap novel missing-key recording while still allowing existing missing rows to increment.
+- Add locale repository column allow-lists so direct repository calls cannot write unknown or immutable columns.
 
 ## [1.0.0] - 2026-06-11
 
