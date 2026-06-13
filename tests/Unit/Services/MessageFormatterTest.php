@@ -57,6 +57,18 @@ final class MessageFormatterTest extends TestCase
         );
     }
 
+    public function testMalformedIcuMessageFallsBackWithoutThrowing(): void
+    {
+        if (!extension_loaded('intl')) {
+            self::markTestSkipped('ext-intl is required to exercise malformed ICU construction.');
+        }
+
+        self::assertSame(
+            'Cart: {count, plural, one {# item} other {# items}',
+            $this->formatter->format('Cart: {count, plural, one {# item} other {# items}', ['count' => 2], 'en')
+        );
+    }
+
     public function testSelectordinalFormatsViaIcuWhenIntlPresent(): void
     {
         if (!extension_loaded('intl')) {
