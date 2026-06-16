@@ -125,11 +125,11 @@ final class I18nServiceProvider extends ServiceProvider
     public function register(ApplicationContext $context): void
     {
         $this->mergeConfig('i18n', require __DIR__ . '/../config/i18n.php');
-        $this->loadMigrationsFrom(__DIR__ . '/../migrations', MigrationPriority::DEFAULT, 'glueful/i18n');
     }
 
     public function boot(ApplicationContext $context): void
     {
+        $this->loadMigrationsFrom(__DIR__ . '/../migrations', MigrationPriority::DEFAULT, 'glueful/i18n');
         $this->discoverCommands('Glueful\\Extensions\\I18n\\Console', __DIR__ . '/Console');
         if ((bool) \config($context, 'i18n.routes_enabled', true)) {
             $this->loadRoutesFrom(__DIR__ . '/../routes/routes.php');
