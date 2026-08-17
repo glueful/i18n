@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Glueful\Extensions\I18n;
 
 use Glueful\Bootstrap\ApplicationContext;
-use Glueful\Database\Migrations\MigrationPriority;
 use Glueful\Extensions\I18n\Console\LocaleListCommand;
 use Glueful\Extensions\I18n\Console\MissingListCommand;
 use Glueful\Extensions\I18n\Console\TranslationExportCommand;
@@ -129,7 +128,7 @@ final class I18nServiceProvider extends ServiceProvider
 
     public function boot(ApplicationContext $context): void
     {
-        $this->loadMigrationsFrom(__DIR__ . '/../migrations', MigrationPriority::DEFAULT, 'glueful/i18n');
+        // Migrations are declared by the composer manifest (extra.glueful.migrations).
         $this->discoverCommands('Glueful\\Extensions\\I18n\\Console', __DIR__ . '/Console');
         if ((bool) \config($context, 'i18n.routes_enabled', true)) {
             $this->loadRoutesFrom(__DIR__ . '/../routes/routes.php');
